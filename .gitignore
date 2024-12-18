@@ -162,3 +162,5 @@ cython_debug/
 #.idea/
 
 
+# Project files
+generated_data.txt
