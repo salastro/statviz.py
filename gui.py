@@ -9,8 +9,9 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-# Assuming rv.py, jrv.py, and frv.py contain the necessary functions
-import rv  # Assuming rv.py has functions: plot_dist, calc_stats, plot_mgf
+import random_variables as rv
+import joint_random_variables as jrv
+import functions_of_random_variables as frv
 
 
 class MainWindow(QMainWindow):

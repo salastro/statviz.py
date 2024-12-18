@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+import argparse
 
 
 # Function to generate a sample file
@@ -104,7 +105,7 @@ def calculate_correlation(X, Y, joint_prob, unique_X, unique_Y):
 
 
 # Function to plot joint and marginal distributions
-def plot_distributions_3d(unique_X, unique_Y, joint_prob, Px, Py):
+def plot_marginal_distributions(unique_X, unique_Y, joint_prob, Px, Py, bin_width_X, bin_width_Y):
     """
     Plots the 3D joint probability distribution in one figure
     and the marginal distributions in a separate figure.
@@ -116,41 +117,41 @@ def plot_distributions_3d(unique_X, unique_Y, joint_prob, Px, Py):
         Px (array): Marginal probability distribution for X.
         Py (array): Marginal probability distribution for Y.
     """
-    # --- Figure 1: 3D Joint Probability Distribution ---
-    fig1 = plt.figure(figsize=(8, 6))
-    ax1 = fig1.add_subplot(111, projection="3d")
-
-    # Create mesh grid for 3D bar plot
-    X_mesh, Y_mesh = np.meshgrid(unique_Y, unique_X)
-    xpos = X_mesh.ravel()
-    ypos = Y_mesh.ravel()
-    zpos = np.zeros_like(xpos)  # Starting z position
-
-    dx = dy = 1  # Width of bars
-    dz = joint_prob.ravel()  # Heights (probability values)
-
-    # Create the 3D bar plot
-    ax1.bar3d(xpos, ypos, zpos, dx, dy, dz, shade=True)
-    ax1.set_title("3D Joint Probability Distribution")
-    ax1.set_xlabel("Y")
-    ax1.set_ylabel("X")
-    ax1.set_zlabel("P(X, Y)")
-
-    plt.tight_layout()
-    plt.show(block=False)
-
-    # --- Figure 2: Marginal Distributions ---
     fig2, (ax2, ax3) = plt.subplots(1, 2, figsize=(12, 5))
 
     # Marginal Distribution for X
-    ax2.bar(unique_X, Px, color="blue", alpha=0.7)
+    bin_edges_X = np.arange(
+        unique_X[0] - bin_width_X / 2, unique_X[-1] + bin_width_X, bin_width_X
+    )
+    ax2.hist(
+        unique_X,
+        bins=bin_edges_X,
+        weights=Px,
+        edgecolor="black",
+        align="mid",
+        rwidth=0.9,
+        color="blue",
+        alpha=0.7,
+    )
     ax2.set_title("Marginal Distribution P(X)")
     ax2.set_xlabel("X")
     ax2.set_ylabel("Probability")
     ax2.grid(True)
 
     # Marginal Distribution for Y
-    ax3.bar(unique_Y, Py, color="orange", alpha=0.7)
+    bin_edges_Y = np.arange(
+        unique_Y[0] - bin_width_Y / 2, unique_Y[-1] + bin_width_Y, bin_width_Y
+    )
+    ax3.hist(
+        unique_Y,
+        bins=bin_edges_Y,
+        weights=Py,
+        edgecolor="black",
+        align="mid",
+        rwidth=0.9,
+        color="orange",
+        alpha=0.7,
+    )
     ax3.set_title("Marginal Distribution P(Y)")
     ax3.set_xlabel("Y")
     ax3.set_ylabel("Probability")
@@ -160,25 +161,21 @@ def plot_distributions_3d(unique_X, unique_Y, joint_prob, Px, Py):
     plt.show(block=False)
 
 
+def handle_args():
+    parser = argparse.ArgumentParser(description="Analyze a random variable from a file.")
+    parser.add_argument("bin_width_x", type=float, help="Width of bins for the probability distribution for X.")
+    parser.add_argument("bin_width_y", type=float, help="Width of bins for the probability distribution for Y.")
+    parser.add_argument("filename", type=str, help="Name of the input file.")
+    return parser.parse_args()
+
+
 # Main program
 def main():
-    print("=== Random Variable Analysis ===")
-    print("1. Generate a sample file with random data")
-    print("2. Analyze data from an input file")
-    choice = input("Enter your choice (1/2): ").strip()
 
-    filename = "samples.txt"
-    if choice == "1":
-        num_samples = int(
-            input("Enter the number of sample pairs to generate: ").strip()
-        )
-        generate_sample_file(filename, num_samples)
-
-    elif choice == "2":
-        pass
-
-    else:
-        print("Invalid choice. Exiting.")
+    args = handle_args()
+    filename = args.filename
+    bin_width_X = args.bin_width_x
+    bin_width_Y = args.bin_width_y
 
     X, Y = read_file(filename)
     if X is None or Y is None:
@@ -189,7 +186,7 @@ def main():
     Px, Py = compute_marginals(joint_prob)
 
     # Plot 3D Joint and Marginal Distributions
-    plot_distributions_3d(unique_X, unique_Y, joint_prob, Px, Py)
+    plot_marginal_distributions(unique_X, unique_Y, joint_prob, Px, Py, bin_width_X, bin_width_Y)
 
     # Calculate covariance and correlation
     covariance = calculate_covariance(X, Y, joint_prob, unique_X, unique_Y)
