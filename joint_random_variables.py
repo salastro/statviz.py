@@ -105,7 +105,7 @@ def calculate_correlation(X, Y, joint_prob, unique_X, unique_Y):
 
 
 # Function to plot joint and marginal distributions
-def plot_marginal_distributions(unique_X, unique_Y, joint_prob, Px, Py, bin_width_X, bin_width_Y):
+def plot_marginal_distributions(unique_X, unique_Y, Px, Py):
     """
     Plots the 3D joint probability distribution in one figure
     and the marginal distributions in a separate figure.
@@ -118,6 +118,12 @@ def plot_marginal_distributions(unique_X, unique_Y, joint_prob, Px, Py, bin_widt
         Py (array): Marginal probability distribution for Y.
     """
     fig2, (ax2, ax3) = plt.subplots(1, 2, figsize=(12, 5))
+
+
+    # Calculate automatic bin width for X (Scott's Rule)
+    n_x = len(unique_X)
+    std_x = np.std(unique_X)
+    bin_width_X = 3.5 * std_x / (n_x ** (1/3))
 
     # Marginal Distribution for X
     bin_edges_X = np.arange(
@@ -138,6 +144,11 @@ def plot_marginal_distributions(unique_X, unique_Y, joint_prob, Px, Py, bin_widt
     ax2.set_ylabel("Probability")
     ax2.grid(True)
 
+    # Calculate automatic bin width for Y (Scott's Rule)
+    n_y = len(unique_Y)
+    std_y = np.std(unique_Y)
+    bin_width_Y = 3.5 * std_y / (n_y ** (1/3))
+    
     # Marginal Distribution for Y
     bin_edges_Y = np.arange(
         unique_Y[0] - bin_width_Y / 2, unique_Y[-1] + bin_width_Y, bin_width_Y
@@ -163,8 +174,6 @@ def plot_marginal_distributions(unique_X, unique_Y, joint_prob, Px, Py, bin_widt
 
 def handle_args():
     parser = argparse.ArgumentParser(description="Analyze a random variable from a file.")
-    parser.add_argument("bin_width_x", type=float, help="Width of bins for the probability distribution for X.")
-    parser.add_argument("bin_width_y", type=float, help="Width of bins for the probability distribution for Y.")
     parser.add_argument("filename", type=str, help="Name of the input file.")
     return parser.parse_args()
 
@@ -174,8 +183,6 @@ def main():
 
     args = handle_args()
     filename = args.filename
-    bin_width_X = args.bin_width_x
-    bin_width_Y = args.bin_width_y
 
     X, Y = read_file(filename)
     if X is None or Y is None:
@@ -186,7 +193,7 @@ def main():
     Px, Py = compute_marginals(joint_prob)
 
     # Plot 3D Joint and Marginal Distributions
-    plot_marginal_distributions(unique_X, unique_Y, joint_prob, Px, Py, bin_width_X, bin_width_Y)
+    plot_marginal_distributions(unique_X, unique_Y, Px, Py)
 
     # Calculate covariance and correlation
     covariance = calculate_covariance(X, Y, joint_prob, unique_X, unique_Y)

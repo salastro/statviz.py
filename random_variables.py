@@ -1,6 +1,7 @@
+import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
 
 
 def read_input(filename: str) -> np.ndarray:
@@ -36,11 +37,22 @@ def calc_prop(X: np.ndarray) -> np.ndarray:
     return P
 
 
-def plot_prob_cdf(X: np.ndarray, P: np.ndarray, bin_width: float) -> None:
-    """Plots the probability distribution (as a histogram) and cumulative distribution function (CDF)."""
+def plot_prob_cdf(X: np.ndarray, P: np.ndarray) -> None:
+    """
+    Plots the probability distribution (as a histogram) and cumulative distribution function (CDF)
+    with automatic bin width calculation.
+    """
     CDF = np.cumsum(P)
 
-    # Generate histogram bin edges based on X and bin_width
+    # Calculate automatic bin width using Scott's Rule
+    n = len(X)
+    std_x = np.std(X)
+    if std_x == 0:
+        bin_width = 1.0
+    else:
+        bin_width = 3.5 * std_x / (n ** (1 / 3))
+
+    # Generate histogram bin edges based on X and automatic bin_width
     bin_edges = np.arange(X[0] - bin_width / 2, X[-1] + bin_width, bin_width)
 
     plt.figure(figsize=(10, 6))
@@ -117,9 +129,11 @@ def plot_mgf_deriv(
     plt.tight_layout()
     plt.show(block=False)
 
+
 def handle_args():
-    parser = argparse.ArgumentParser(description="Analyze a random variable from a file.")
-    parser.add_argument("bin_width", type=float, help="Width of bins for the probability distribution.")
+    parser = argparse.ArgumentParser(
+        description="Analyze a random variable from a file."
+    )
     parser.add_argument("filename", type=str, help="Name of the input file.")
     return parser.parse_args()
 
@@ -128,13 +142,12 @@ def main():
     # Input file
     args = handle_args()
     filename = args.filename
-    bin_width = args.bin_width
     X = read_input(filename)
     unique_X = np.unique(X)
     P = calc_prop(X)
 
     # Step 1: Plot Probability Distribution and CDF
-    plot_prob_cdf(unique_X, P, bin_width)
+    plot_prob_cdf(unique_X, P)
 
     # Step 2: Calculate and Display Statistical Measures
     mean_X, var_X, third_moment = calc_stats(unique_X, P)
