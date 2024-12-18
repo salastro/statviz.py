@@ -1,6 +1,7 @@
-import sys
-
 import numpy as np
+
+from helpers import *
+from utils import *
 
 
 def uniform_distribution(samples, a, b):
@@ -27,39 +28,6 @@ def gamma_distribution(samples, shape, scale):
     return np.random.gamma(shape, scale, samples)
 
 
-def get_positive_integer(prompt):
-    try:
-        value = int(input(prompt).strip())
-        if value <= 0:
-            raise ValueError("Value must be a positive integer.")
-        return value
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
-
-def get_positive_float(prompt):
-    try:
-        value = float(input(prompt).strip())
-        if value <= 0:
-            raise ValueError("Value must be positive.")
-        return value
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
-
-def get_probability(prompt):
-    try:
-        value = float(input(prompt).strip())
-        if not (0 <= value <= 1):
-            raise ValueError("Probability must be between 0 and 1.")
-        return value
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
-
 def save_file(data, filename="generated_data.txt"):
     with open(filename, "w") as file:
         file.write(f"{len(data)}\n")
@@ -67,13 +35,13 @@ def save_file(data, filename="generated_data.txt"):
             file.write(f"{value}\n")
     print(f"Data saved to {filename}")
 
+
 def save_file_joint(X, Y, filename="generated_data.txt"):
     with open(filename, "w") as file:
         file.write(f"{len(X)}\n")
         for x, y in zip(X, Y):
             file.write(f"{x} {y}\n")
     print(f"Data saved to {filename}")
-
 
 
 def generate_joint_rv(samples):
@@ -116,7 +84,7 @@ def generate_joint_rv(samples):
             X = gamma_distribution(samples, shape, scale)
         case _:
             print("Invalid custom option.")
-            sys.exit(1)
+            exit(1)
 
     print("1. Y ~ Uniform Distribution (U(a, b))")
     print("2. Y ~ Normal Distribution (N(mean, std_dev))")
@@ -164,7 +132,7 @@ def generate_joint_rv(samples):
                 print(f"Error: {e}")
         case _:
             print("Invalid custom option.")
-            sys.exit(1)
+            exit(1)
 
     print("Generated X:", X)
     print("Generated Y:", Y)
@@ -219,7 +187,7 @@ def generate_test_case():
 
         case _:
             print("Invalid choice.")
-            sys.exit(1)
+            exit(1)
 
     print("Generated Data:")
     print(data)

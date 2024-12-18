@@ -1,27 +1,12 @@
+import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-import argparse
+from scipy.stats import binned_statistic_2d
 
-
-# Function to generate a sample file
-def generate_sample_file(filename: str, num_samples: int) -> None:
-    """
-    Generates a sample file with random pairs of (X, Y).
-
-    Args:
-        filename (str): Name of the output file.
-        num_samples (int): Number of sample pairs to generate.
-    """
-    X = np.random.randint(1, 10, size=num_samples)
-    Y = np.random.randint(1, 10, size=num_samples)
-
-    with open(filename, "w") as file:
-        file.write(f"{num_samples}\n")
-        for x, y in zip(X, Y):
-            file.write(f"{x} {y}\n")
-
-    print(f"Sample file '{filename}' generated successfully with {num_samples} pairs.")
+from helpers import *
+from utils import *
 
 
 # Function to read data from a file
@@ -51,38 +36,40 @@ def read_file(filename: str) -> tuple[np.ndarray, np.ndarray]:
 
         return X, Y
     except Exception as e:
-        raise e
+        print(f"Error: {e}")
+        exit(1)
 
 
 # Function to compute joint probability distribution
-def compute_joint_distribution(X, Y):
-    unique_X, unique_Y = np.unique(X), np.unique(Y)
-    joint_prob = np.zeros((len(unique_X), len(unique_Y)))
+def calc_joint_prob(X, Y):
+    Xuq, Yuq = np.unique(X), np.unique(Y)
+    joint_prob = np.zeros((len(Xuq), len(Yuq)))
 
     for x, y in zip(X, Y):
-        x_idx = np.where(unique_X == x)[0][0]
-        y_idx = np.where(unique_Y == y)[0][0]
+        x_idx = np.where(Xuq == x)[0][0]
+        y_idx = np.where(Yuq == y)[0][0]
         joint_prob[x_idx, y_idx] += 1
 
     joint_prob /= len(X)
-    return unique_X, unique_Y, joint_prob
+    return joint_prob
 
 
 # Function to compute marginal distributions
-def compute_marginals(joint_prob):
+def calc_marg(joint_prob):
     Px = np.sum(joint_prob, axis=1)
     Py = np.sum(joint_prob, axis=0)
     return Px, Py
 
 
 # Function to calculate covariance
-def calculate_covariance(X, Y, joint_prob, unique_X, unique_Y):
-    Ex = np.sum(unique_X * np.sum(joint_prob, axis=1))
-    Ey = np.sum(unique_Y * np.sum(joint_prob, axis=0))
+def calc_cov(X, Y, joint_prob):
+    Xuq, Yuq = np.unique(X), np.unique(Y)
+    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1))
+    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0))
     Exy = 0
 
-    for i, x in enumerate(unique_X):
-        for j, y in enumerate(unique_Y):
+    for i, x in enumerate(Xuq):
+        for j, y in enumerate(Yuq):
             Exy += x * y * joint_prob[i, j]
 
     covariance = Exy - (Ex * Ey)
@@ -90,47 +77,45 @@ def calculate_covariance(X, Y, joint_prob, unique_X, unique_Y):
 
 
 # Function to calculate correlation coefficient
-def calculate_correlation(X, Y, joint_prob, unique_X, unique_Y):
-    Ex = np.sum(unique_X * np.sum(joint_prob, axis=1))
-    Ey = np.sum(unique_Y * np.sum(joint_prob, axis=0))
-    Ex2 = np.sum((unique_X**2) * np.sum(joint_prob, axis=1))
-    Ey2 = np.sum((unique_Y**2) * np.sum(joint_prob, axis=0))
+def calc_cor(X, Y, joint_prob):
+    Xuq, Yuq = np.unique(X), np.unique(Y)
+    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1))
+    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0))
+    Ex2 = np.sum((Xuq**2) * np.sum(joint_prob, axis=1))
+    Ey2 = np.sum((Yuq**2) * np.sum(joint_prob, axis=0))
 
     Var_X = Ex2 - Ex**2
     Var_Y = Ey2 - Ey**2
 
-    covariance = calculate_covariance(X, Y, joint_prob, unique_X, unique_Y)
+    covariance = calc_cov(X, Y, joint_prob)
     correlation = covariance / np.sqrt(Var_X * Var_Y)
     return correlation
 
 
 # Function to plot joint and marginal distributions
-def plot_marginal_distributions(unique_X, unique_Y, Px, Py):
+def plot_marg_prob(X, Y, Px, Py):
     """
     Plots the 3D joint probability distribution in one figure
     and the marginal distributions in a separate figure.
 
     Args:
-        unique_X (array): Unique values of random variable X.
-        unique_Y (array): Unique values of random variable Y.
+        X (array): Values of random variable X.
+        Y (array): Values of random variable Y.
         joint_prob (2D array): Joint probability distribution.
         Px (array): Marginal probability distribution for X.
         Py (array): Marginal probability distribution for Y.
     """
+    Xuq, Yuq = np.unique(X), np.unique(Y)
+
     fig2, (ax2, ax3) = plt.subplots(1, 2, figsize=(12, 5))
 
-
-    # Calculate automatic bin width for X (Scott's Rule)
-    n_x = len(unique_X)
-    std_x = np.std(unique_X)
-    bin_width_X = 3.5 * std_x / (n_x ** (1/3))
-
     # Marginal Distribution for X
+    bin_width_X = calc_bin_w(X)
     bin_edges_X = np.arange(
-        unique_X[0] - bin_width_X / 2, unique_X[-1] + bin_width_X, bin_width_X
+        Xuq[0] - bin_width_X / 2, Xuq[-1] + bin_width_X, bin_width_X
     )
     ax2.hist(
-        unique_X,
+        Xuq,
         bins=bin_edges_X,
         weights=Px,
         edgecolor="black",
@@ -144,17 +129,13 @@ def plot_marginal_distributions(unique_X, unique_Y, Px, Py):
     ax2.set_ylabel("Probability")
     ax2.grid(True)
 
-    # Calculate automatic bin width for Y (Scott's Rule)
-    n_y = len(unique_Y)
-    std_y = np.std(unique_Y)
-    bin_width_Y = 3.5 * std_y / (n_y ** (1/3))
-    
     # Marginal Distribution for Y
+    bin_width_Y = calc_bin_w(Y)
     bin_edges_Y = np.arange(
-        unique_Y[0] - bin_width_Y / 2, unique_Y[-1] + bin_width_Y, bin_width_Y
+        Yuq[0] - bin_width_Y / 2, Yuq[-1] + bin_width_Y, bin_width_Y
     )
     ax3.hist(
-        unique_Y,
+        Yuq,
         bins=bin_edges_Y,
         weights=Py,
         edgecolor="black",
@@ -172,8 +153,63 @@ def plot_marginal_distributions(unique_X, unique_Y, Px, Py):
     plt.show(block=False)
 
 
+def plot_joint_prob(Z: np.ndarray, W: np.ndarray, P: np.ndarray) -> None:
+    """
+    Plots the joint probability distribution of Z and W with automatic bin widths for the bars
+    and adds probabilities within each bin.
+    """
+    # Calculate automatic width for Z (Scott's Rule)
+    Zuq, Wuq = np.unique(Z), np.unique(W)
+
+    # Calculate bin widths
+    width_z = calc_bin_w(Zuq)
+    width_w = calc_bin_w(Wuq)
+
+    # Calculate bin edges
+    z_min = np.min(Zuq)
+    z_max = np.max(Zuq)
+    w_min = np.min(Wuq)
+    w_max = np.max(Wuq)
+    z_edges = np.arange(z_min - width_z / 2, z_max + width_z / 2, width_z)
+    w_edges = np.arange(w_min - width_w / 2, w_max + width_w / 2, width_w)
+
+    # Use scipy.stats.binned_statistic_2d for binning and averaging probabilities
+    joint_probabilities, z_edges, w_edges, binnumbers = binned_statistic_2d(
+        Zuq, Wuq, P, statistic="mean", bins=[z_edges, w_edges]
+    )
+
+    # Get centers of the bins
+    z_bin_centers = (z_edges[:-1] + z_edges[1:]) / 2
+    w_bin_centers = (w_edges[:-1] + w_edges[1:]) / 2
+
+    # Generate Z and W for plotting
+    z_mesh, w_mesh = np.meshgrid(z_bin_centers, w_bin_centers)
+    z_values = z_mesh.flatten()
+    w_values = w_mesh.flatten()
+    joint_probabilities = joint_probabilities.flatten()
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(projection="3d")
+    ax.bar3d(
+        z_values,
+        w_values,
+        np.zeros_like(joint_probabilities),
+        width_z,
+        width_w,
+        joint_probabilities,
+        shade=True,
+    )
+    ax.set_xlabel("Z")
+    ax.set_ylabel("W")
+    ax.set_zlabel("Probability")
+    ax.set_title("Joint Probability Distribution of Z and W")
+    plt.show(block=False)
+
+
 def handle_args():
-    parser = argparse.ArgumentParser(description="Analyze a random variable from a file.")
+    parser = argparse.ArgumentParser(
+        description="Analyze a random variable from a file."
+    )
     parser.add_argument("filename", type=str, help="Name of the input file.")
     return parser.parse_args()
 
@@ -189,20 +225,31 @@ def main():
         return
 
     # Compute distributions
-    unique_X, unique_Y, joint_prob = compute_joint_distribution(X, Y)
-    Px, Py = compute_marginals(joint_prob)
+    joint_prob = calc_joint_prob(X, Y)
+    Px, Py = calc_marg(joint_prob)
 
     # Plot 3D Joint and Marginal Distributions
-    plot_marginal_distributions(unique_X, unique_Y, Px, Py)
+    plot_marg_prob(X, Y, Px, Py)
+    plot_joint_prob(X, Y, joint_prob)
 
     # Calculate covariance and correlation
-    covariance = calculate_covariance(X, Y, joint_prob, unique_X, unique_Y)
-    correlation = calculate_correlation(X, Y, joint_prob, unique_X, unique_Y)
+    cov = calc_cov(X, Y, joint_prob)
+    cor = calc_cor(X, Y, joint_prob)
+    mean_X, var_X, third_moment_X = calc_stats(np.unique(X), Px)
+    mean_Y, var_Y, third_moment_Y = calc_stats(np.unique(Y), Py)
 
     # Display results
     print("\n=== Results ===")
-    print(f"Covariance: {covariance:.4f}")
-    print(f"Correlation Coefficient: {correlation:.4f}")
+    print(f"Covariance: {cov:.4f}")
+    print(f"Correlation Coefficient: {cor:.4f}")
+    print("\nStatistical Measures for X:")
+    print(f"Mean = {mean_X:.4f}")
+    print(f"Variance = {var_X:.4f}")
+    print(f"Third Moment = {third_moment_X:.4f}")
+    print("\nStatistical Measures for Y:")
+    print(f"Mean = {mean_Y:.4f}")
+    print(f"Variance = {var_Y:.4f}")
+    print(f"Third Moment = {third_moment_Y:.4f}")
 
     # Show plots
     plt.show(block=True)
