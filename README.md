@@ -63,27 +63,8 @@ This project is delivered as a package of files:
 
 ## Dependencies
 
-The GUI is built using a Matlab or any other suitable software package.
+The GUI is built using a Python library called `PyQt6` for the graphical interface. The statistical calculations and plotting are done using `numpy`, `scipy`, and `matplotlib` libraries. These libraries are required to run the application.
 
 ## Team Information
 
-This project was created by a team of 2-3 students from the Communications and Information Engineering Program, Zewail City.
-
-## Grading Criteria
-
-The project will be assessed based on the following criteria:
-
-*   **Completeness and Correctness of Deliverables (50%):**  All features function as specified, and all calculations and visualizations are correct.
-*   **GUI Design and Ease of Use (10%):** How clear and easy is it to use the GUI.
-*   **Report Writing and Organization (20%):**  The quality and completeness of the project report with proper labeling and explanations.
-*   **Comprehensiveness and Clarity of Content in Recorded Video (20%):**  A clear demonstration and explanation of the GUI functionality in the provided video.
-
-## Grading Notes
-
-*   The project will be evaluated for completeness, correctness, user interface, and report quality.
-*   No sharing of reports is allowed between groups. If duplicate reports are submitted, both reports will be given a 0.
-*   Late submissions will be penalized 10% per day, for up to 5 days late, after which, submissions will not be graded.
-
-## Contact
-
-For any questions or clarifications, please reach out to [insert contact information here]
+This project was developed by a team of students from the Department of Communication and Information Engineering at the University of Science and Technology in Zewail City, Egypt. The team members are: SalahDin A. Rezk, and Marwan B. Ragaa.
