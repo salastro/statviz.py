@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def calc_bin_w(Xuq: np.ndarray) -> float:
+def calc_bin_width(Xuq: np.ndarray) -> float:
     """
     Calculate bin width using Scott's Rule.
     Xuq: unique values

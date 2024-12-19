@@ -51,35 +51,51 @@ def calc_joint_prob(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
     return joint_prob
 
 
-# Function to compute marginal distributions
-def calc_marg(joint_prob):
-    Px = np.sum(joint_prob, axis=1)
-    Py = np.sum(joint_prob, axis=0)
+def calc_marg(joint_prob: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Compute marginal distributions in float64 precision.
+    """
+    joint_prob = joint_prob.astype(np.float64)
+    Px = np.sum(joint_prob, axis=1, dtype=np.float64)
+    Py = np.sum(joint_prob, axis=0, dtype=np.float64)
     return Px, Py
 
 
-# Function to calculate covariance
-def calc_cov(X, Y, joint_prob):
-    Xuq, Yuq = np.unique(X), np.unique(Y)
-    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1))
-    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0))
-    Exy = 0
+def calc_cov(X: np.ndarray, Y: np.ndarray, joint_prob: np.ndarray) -> float:
+    """
+    Calculate covariance using float64 precision.
+    """
+    X = X.astype(np.float64)
+    Y = Y.astype(np.float64)
+    joint_prob = joint_prob.astype(np.float64)
 
-    for i, x in enumerate(Xuq):
-        for j, y in enumerate(Yuq):
-            Exy += x * y * joint_prob[i, j]
+    Xuq = np.unique(X)
+    Yuq = np.unique(Y)
 
+    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1), dtype=np.float64)
+    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0), dtype=np.float64)
+
+    Exy = np.sum(np.outer(Xuq, Yuq) * joint_prob, dtype=np.float64)
     covariance = Exy - (Ex * Ey)
     return covariance
 
 
-# Function to calculate correlation coefficient
-def calc_cor(X, Y, joint_prob):
-    Xuq, Yuq = np.unique(X), np.unique(Y)
-    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1))
-    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0))
-    Ex2 = np.sum((Xuq**2) * np.sum(joint_prob, axis=1))
-    Ey2 = np.sum((Yuq**2) * np.sum(joint_prob, axis=0))
+def calc_cor(X: np.ndarray, Y: np.ndarray, joint_prob: np.ndarray) -> float:
+    """
+    Calculate correlation coefficient using float64 precision.
+    """
+    X = X.astype(np.float64)
+    Y = Y.astype(np.float64)
+    joint_prob = joint_prob.astype(np.float64)
+
+    Xuq = np.unique(X)
+    Yuq = np.unique(Y)
+
+    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1), dtype=np.float64)
+    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0), dtype=np.float64)
+
+    Ex2 = np.sum((Xuq**2) * np.sum(joint_prob, axis=1), dtype=np.float64)
+    Ey2 = np.sum((Yuq**2) * np.sum(joint_prob, axis=0), dtype=np.float64)
 
     Var_X = Ex2 - Ex**2
     Var_Y = Ey2 - Ey**2
@@ -89,31 +105,28 @@ def calc_cor(X, Y, joint_prob):
     return correlation
 
 
-# Function to plot joint and marginal distributions
-def plot_marg_prob(X, Y, Px, Py):
+def plot_marg_prob(
+    X: np.ndarray, Y: np.ndarray, Px: np.ndarray, Py: np.ndarray
+) -> None:
     """
-    Plots the 3D joint probability distribution in one figure
-    and the marginal distributions in a separate figure.
-
-    Args:
-        X (array): Values of random variable X.
-        Y (array): Values of random variable Y.
-        joint_prob (2D array): Joint probability distribution.
-        Px (array): Marginal probability distribution for X.
-        Py (array): Marginal probability distribution for Y.
+    Plot marginal distributions using float64 arrays.
     """
-    Xuq, Yuq = np.unique(X), np.unique(Y)
+    X = X.astype(np.float64)
+    Y = Y.astype(np.float64)
+    Px = Px.astype(np.float64)
+    Py = Py.astype(np.float64)
 
-    fig2, (ax2, ax3) = plt.subplots(1, 2, figsize=(12, 5))
+    Xuq = np.unique(X)
+    Yuq = np.unique(Y)
 
-    # Marginal Distribution for X
-    bin_width_X = calc_bin_w(X)
-    bin_edges_X = np.arange(
-        Xuq[0] - bin_width_X / 2, Xuq[-1] + bin_width_X, bin_width_X
-    )
+    _, (ax2, ax3) = plt.subplots(1, 2, figsize=(12, 5))
+
+    _, bins_X = np.histogram(X, bins="scott", density=True)
+    _, bins_Y = np.histogram(Y, bins="scott", density=True)
+
     ax2.hist(
         Xuq,
-        bins=bin_edges_X,
+        bins=bins_X,
         weights=Px,
         edgecolor="black",
         align="mid",
@@ -126,14 +139,9 @@ def plot_marg_prob(X, Y, Px, Py):
     ax2.set_ylabel("Probability")
     ax2.grid(True)
 
-    # Marginal Distribution for Y
-    bin_width_Y = calc_bin_w(Y)
-    bin_edges_Y = np.arange(
-        Yuq[0] - bin_width_Y / 2, Yuq[-1] + bin_width_Y, bin_width_Y
-    )
     ax3.hist(
         Yuq,
-        bins=bin_edges_Y,
+        bins=bins_Y,
         weights=Py,
         edgecolor="black",
         align="mid",
@@ -150,56 +158,49 @@ def plot_marg_prob(X, Y, Px, Py):
     plt.show(block=False)
 
 
-def plot_joint_prob(Z: np.ndarray, W: np.ndarray, P: np.ndarray) -> None:
+def plot_joint_prob(X: np.ndarray, Y: np.ndarray, joint_prob: np.ndarray) -> None:
     """
-    Plots the joint probability distribution of Z and W with automatic bin widths for the bars
-    and adds probabilities within each bin.
+    Plot joint probability distribution using float64 arrays.
+    Uses thinner bars for better visualization.
     """
-    # Calculate automatic width for Z (Scott's Rule)
-    Zuq, Wuq = np.unique(Z), np.unique(W)
-
-    # Calculate bin widths
-    width_z = calc_bin_w(Zuq)
-    width_w = calc_bin_w(Wuq)
-
-    # Calculate bin edges
-    z_min = np.min(Zuq)
-    z_max = np.max(Zuq)
-    w_min = np.min(Wuq)
-    w_max = np.max(Wuq)
-    z_edges = np.arange(z_min - width_z / 2, z_max + width_z / 2, width_z)
-    w_edges = np.arange(w_min - width_w / 2, w_max + width_w / 2, width_w)
-
-    # Use scipy.stats.binned_statistic_2d for binning and averaging probabilities
-    joint_probabilities, z_edges, w_edges, binnumbers = binned_statistic_2d(
-        Zuq, Wuq, P, statistic="mean", bins=[z_edges, w_edges]
-    )
-
-    # Get centers of the bins
-    z_bin_centers = (z_edges[:-1] + z_edges[1:]) / 2
-    w_bin_centers = (w_edges[:-1] + w_edges[1:]) / 2
-
-    # Generate Z and W for plotting
-    z_mesh, w_mesh = np.meshgrid(z_bin_centers, w_bin_centers)
-    z_values = z_mesh.flatten()
-    w_values = w_mesh.flatten()
-    joint_probabilities = joint_probabilities.flatten()
-
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(projection="3d")
-    ax.bar3d(
-        z_values,
-        w_values,
-        np.zeros_like(joint_probabilities),
-        width_z,
-        width_w,
-        joint_probabilities,
-        shade=True,
-    )
-    ax.set_xlabel("Z")
-    ax.set_ylabel("W")
-    ax.set_zlabel("Probability")
-    ax.set_title("Joint Probability Distribution of Z and W")
+    X = X.astype(np.float64)
+    Y = Y.astype(np.float64)
+    joint_prob = joint_prob.astype(np.float64)
+    
+    Xuq = np.unique(X)
+    Yuq = np.unique(Y)
+    
+    bin_width_X = calc_bin_width(Xuq)
+    bin_width_Y = calc_bin_width(Yuq)
+    
+    bin_edges_X = np.arange(Xuq[0] - bin_width_X/2, Xuq[-1] + bin_width_X, bin_width_X, dtype=np.float64)
+    bin_edges_Y = np.arange(Yuq[0] - bin_width_Y/2, Yuq[-1] + bin_width_Y, bin_width_Y, dtype=np.float64)
+    
+    H, xedges, yedges = np.histogram2d(X, Y, bins=(bin_edges_X, bin_edges_Y), density=True)
+    
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    xpos, ypos = np.meshgrid(xedges[:-1], yedges[:-1], indexing='ij')
+    xpos = xpos.ravel()
+    ypos = ypos.ravel()
+    zpos = np.zeros_like(xpos, dtype=np.float64)
+    
+    # Reduce the width of the bars by setting dx and dy to smaller values
+    dx = np.ones_like(zpos, dtype=np.float64) * 0.5  # Changed from 1.0 to 0.5
+    dy = np.ones_like(zpos, dtype=np.float64) * 0.5  # Changed from 1.0 to 0.5
+    dz = H.ravel()
+    
+    ax.bar3d(xpos, ypos, zpos, dx, dy, dz)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Probability')
+    ax.set_title('Joint Probability Distribution P(X, Y)')
+    
+    # Adjust the view angle for better visibility of thinner bars
+    ax.view_init(elev=25, azim=45)
+    
+    plt.tight_layout()
     plt.show(block=False)
 
 

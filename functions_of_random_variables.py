@@ -1,7 +1,11 @@
+from typing import Callable
+
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import Callable
 from mpl_toolkits.mplot3d import Axes3D
+
+from helpers import *
+from utils import *
 
 
 def read_input(filename: str) -> tuple[np.ndarray, np.ndarray]:
@@ -27,7 +31,10 @@ def read_input(filename: str) -> tuple[np.ndarray, np.ndarray]:
         print(f"Error: {e}")
         exit(1)
 
-def compute_joint_distribution(X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+def compute_joint_distribution(
+    X: np.ndarray, Y: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Computes the joint probability distribution of X and Y.
     """
@@ -35,23 +42,27 @@ def compute_joint_distribution(X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray
     unique_Y = np.unique(Y)
     joint_prob = np.zeros((len(unique_X), len(unique_Y)))
     for x, y in zip(X, Y):
-      x_idx = np.where(unique_X == x)[0][0]
-      y_idx = np.where(unique_Y == y)[0][0]
-      joint_prob[x_idx, y_idx] += 1
+        x_idx = np.where(unique_X == x)[0][0]
+        y_idx = np.where(unique_Y == y)[0][0]
+        joint_prob[x_idx, y_idx] += 1
     joint_prob /= len(X)
     return unique_X, unique_Y, joint_prob
 
+
 def compute_marginals(joint_prob: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-  """
+    """
     Computes the marginal probability distributions from the joint probability distribution.
-  """
-  Px = np.sum(joint_prob, axis=1)
-  Py = np.sum(joint_prob, axis=0)
-  return Px, Py
+    """
+    Px = np.sum(joint_prob, axis=1)
+    Py = np.sum(joint_prob, axis=0)
+    return Px, Py
 
 
 def calculate_z_w(
-    X: np.ndarray, Y: np.ndarray, z_func: Callable[[float], float], w_func: Callable[[float], float]
+    X: np.ndarray,
+    Y: np.ndarray,
+    z_func: Callable[[float], float],
+    w_func: Callable[[float], float],
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Calculates Z and W as functions of X and Y.
@@ -61,12 +72,14 @@ def calculate_z_w(
     return Z, W
 
 
-def plot_distribution(values: np.ndarray, probabilities: np.ndarray, title: str, xlabel: str, ylabel: str) -> None:
+def plot_distribution(
+    values: np.ndarray, probabilities: np.ndarray, title: str, xlabel: str, ylabel: str
+) -> None:
     """Plots the probability distribution of a random variable."""
     unique_vals = np.unique(values)
     prob_for_unique = np.zeros(len(unique_vals))
     for i, val in enumerate(unique_vals):
-      prob_for_unique[i] = np.sum(probabilities[values == val])
+        prob_for_unique[i] = np.sum(probabilities[values == val])
 
     plt.figure(figsize=(8, 6))
     plt.stem(unique_vals, prob_for_unique, basefmt=" ")
@@ -77,28 +90,37 @@ def plot_distribution(values: np.ndarray, probabilities: np.ndarray, title: str,
     plt.tight_layout()
     plt.show(block=False)
 
+
 def plot_joint_distribution(Z: np.ndarray, W: np.ndarray, P: np.ndarray) -> None:
-  """
-  Plots the joint probability distribution of Z and W.
-  """
-  unique_pairs = np.unique(list(zip(Z,W)), axis=0)
-  joint_probabilities = np.zeros(len(unique_pairs))
+    """
+    Plots the joint probability distribution of Z and W.
+    """
+    unique_pairs = np.unique(list(zip(Z, W)), axis=0)
+    joint_probabilities = np.zeros(len(unique_pairs))
 
-  for i, pair in enumerate(unique_pairs):
-    z_val, w_val = pair
-    joint_probabilities[i] = np.sum(P[(Z == z_val) & (W == w_val)])
-  
-  z_values = unique_pairs[:,0]
-  w_values = unique_pairs[:,1]
+    for i, pair in enumerate(unique_pairs):
+        z_val, w_val = pair
+        joint_probabilities[i] = np.sum(P[(Z == z_val) & (W == w_val)])
 
-  fig = plt.figure(figsize=(10,8))
-  ax = fig.add_subplot(projection='3d')
-  ax.bar3d(z_values, w_values, np.zeros_like(joint_probabilities), 1, 1, joint_probabilities, shade=True)
-  ax.set_xlabel("Z")
-  ax.set_ylabel("W")
-  ax.set_zlabel("Probability")
-  ax.set_title("Joint Probability Distribution of Z and W")
-  plt.show(block=False)
+    z_values = unique_pairs[:, 0]
+    w_values = unique_pairs[:, 1]
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(projection="3d")
+    ax.bar3d(
+        z_values,
+        w_values,
+        np.zeros_like(joint_probabilities),
+        1,
+        1,
+        joint_probabilities,
+        shade=True,
+    )
+    ax.set_xlabel("Z")
+    ax.set_ylabel("W")
+    ax.set_zlabel("Probability")
+    ax.set_title("Joint Probability Distribution of Z and W")
+    plt.show(block=False)
 
 
 def plot_distributions_3d(unique_X, unique_Y, joint_prob, Px, Py):
@@ -190,7 +212,7 @@ def main():
     # Plot 3D Joint and Marginal Distributions
     plot_distributions_3d(unique_X, unique_Y, joint_prob, Px, Py)
 
-     # Calculate covariance and correlation
+    # Calculate covariance and correlation
     covariance = calculate_covariance(X, Y, joint_prob, unique_X, unique_Y)
     correlation = calculate_correlation(X, Y, joint_prob, unique_X, unique_Y)
 
@@ -203,8 +225,8 @@ def main():
 
     # Calculate Z and W
     Z, W = calculate_z_w(X, Y, z_func, w_func)
-    
-    P = np.ones(len(X))/len(X)
+
+    P = np.ones(len(X)) / len(X)
 
     # Plot probability distribution of Z
     plot_distribution(Z, P, "Probability Distribution of Z", "Z", "Probability")
