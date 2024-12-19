@@ -40,17 +40,24 @@ def read_file(filename: str) -> tuple[np.ndarray, np.ndarray]:
         exit(1)
 
 
-# Function to compute joint probability distribution
-def calc_joint_prob(X, Y):
-    Xuq, Yuq = np.unique(X), np.unique(Y)
-    joint_prob = np.zeros((len(Xuq), len(Yuq)))
+def calc_joint_prob(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
+    """
+    Calculates joint probability distribution using float64 precision.
+    """
+    if len(X) == 0 or len(Y) == 0:
+        return np.array([], dtype=np.float64)
 
-    for x, y in zip(X, Y):
-        x_idx = np.where(Xuq == x)[0][0]
-        y_idx = np.where(Yuq == y)[0][0]
-        joint_prob[x_idx, y_idx] += 1
+    # Convert inputs to float64 if they aren't already
+    X = X.astype(np.float64)
+    Y = Y.astype(np.float64)
 
-    joint_prob /= len(X)
+    Xuq, X_inv = np.unique(X, return_inverse=True)
+    Yuq, Y_inv = np.unique(Y, return_inverse=True)
+
+    joint_counts = np.zeros((len(Xuq), len(Yuq)), dtype=np.float64)
+    np.add.at(joint_counts, (X_inv, Y_inv), 1)
+
+    joint_prob = joint_counts / len(X)
     return joint_prob
 
 
