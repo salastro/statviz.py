@@ -28,9 +28,21 @@ def read_file(filename: str) -> np.ndarray:
         exit(1)
 
 
-def calc_prop(X: np.ndarray) -> np.ndarray:
+def calc_prob(X: np.ndarray) -> np.ndarray:
+    """
+    Calculates and normalizes probabilities of unique elements in the input array X.
+
+    Parameters:
+        X (np.ndarray): Input array.
+
+    Returns:
+        np.ndarray: Normalized probabilities corresponding to unique elements in X.
+    """
+    if len(X) == 0:
+        return np.array([])  # Return an empty array for empty input
+
     _, counts = np.unique(X, return_counts=True)
-    P = counts / len(X)
+    P = np.array(counts / counts.sum(), dtype=np.float64)  # Explicit normalization step
     return P
 
 
