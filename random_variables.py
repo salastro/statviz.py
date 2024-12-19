@@ -164,4 +164,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        exit(0)
+    except KeyboardInterrupt:
+        print("\nProgram terminated by user.")
+        exit(0)
