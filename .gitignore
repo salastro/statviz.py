@@ -163,4 +163,4 @@ cython_debug/
 
 
 # Project files
-generated_data.txt
+samples/
