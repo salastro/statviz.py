@@ -2,6 +2,7 @@ import argparse
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.io import loadmat
 
 from helpers import *
 from utils import *
@@ -9,23 +10,21 @@ from utils import *
 
 def read_file(filename: str) -> np.ndarray:
     """
-    Reads the input file and returns sample space X and probabilities P.
+    Reads a MATLAB .mat file and returns sample space X and probabilities P.
     File format:
-        First line: number of points (n)
-        Next n lines: two columns (sample space values and probabilities)
+        The .mat file should contain two variables:
+            - 'X': array of sample space values
+            - 'P': array of corresponding probabilities
     """
     try:
-        with open(filename, "r") as file:
-            num_points = int(file.readline().strip())
-            data = np.loadtxt(file)
-            X = data[:]  # Sample space
+        data = loadmat(filename)
+        X = np.array(data.get("X", []), dtype=np.float64)  # Get 'X', default to empty array if not found
 
-        if len(data) != num_points:
-            raise ValueError("Number of data points does not match header.")
-
+        if X.size == 0:
+            raise ValueError("The .mat file must contain 'X' variable.")
         return X
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error reading the file: {e}")
         exit(1)
 
 

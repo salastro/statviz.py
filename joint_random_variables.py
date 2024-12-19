@@ -3,37 +3,27 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.stats import binned_statistic_2d
+from scipy.io import loadmat
 
 from helpers import *
 from utils import *
 
 
-# Function to read data from a file
 def read_file(filename: str) -> tuple[np.ndarray, np.ndarray]:
     """
-    Reads sample pairs (X, Y) from a file.
-
-    Args:
-        filename (str): Input file name.
-
-    Returns:
-        X: List of X values.
-        Y: List of Y values.
+    Reads sample pairs (X, Y) from a MATLAB .mat file.
+    Returns arrays with float64 dtype.
     """
     try:
-        with open(filename, "r") as file:
-            num_samples = int(file.readline().strip())
-            data = np.loadtxt(file)
-            X = data[:, 0]
-            Y = data[:, 1]
+        data = loadmat(filename).get("XY")
+        # Convert to float64 during extraction
+        X = data[0, :].astype(np.float64)
+        Y = data[1, :].astype(np.float64)
 
-        if len(data) != num_samples:
-            raise ValueError("Number of data points does not match header.")
-
-        if data.shape[1] != 2:
-            raise ValueError("Invalid data format. Expected 2 columns.")
-
+        if X.size == 0 or Y.size == 0:
+            raise ValueError("The .mat file must contain 'X' and 'Y' variables.")
+        if len(X) != len(Y):
+            raise ValueError("The number of samples in 'X' and 'Y' do not match.")
         return X, Y
     except Exception as e:
         print(f"Error: {e}")
