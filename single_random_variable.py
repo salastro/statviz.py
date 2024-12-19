@@ -55,16 +55,13 @@ def plot_prob_cdf(X: np.ndarray, P: np.ndarray) -> None:
     CDF = np.cumsum(P)
 
     # Calculate automatic bin width using Scott's Rule
-    bin_width = calc_bin_w(Xuq)
-
-    # Generate histogram bin edges based on X and automatic bin_width
-    bin_edges = np.arange(Xuq[0] - bin_width / 2, Xuq[-1] + bin_width, bin_width)
+    _, bins = np.histogram(X, bins="scott", density=True)
 
     plt.figure(figsize=(10, 6))
 
     # Plot the histogram
     plt.subplot(2, 1, 1)
-    plt.hist(Xuq, bins=bin_edges, weights=P, edgecolor="black", align="mid", rwidth=0.9)
+    plt.hist(Xuq, bins=bins, weights=P, edgecolor="black", align="mid", rwidth=0.9)
     plt.title("Probability Distribution")
     plt.xlabel("Sample Space")
     plt.ylabel("Probability")
@@ -144,7 +141,7 @@ def main():
     args = handle_args()
     filename = args.filename
     X = read_file(filename)
-    P = calc_prop(X)
+    P = calc_prob(X)
 
     # Step 1: Plot Probability Distribution and CDF
     plot_prob_cdf(X, P)
