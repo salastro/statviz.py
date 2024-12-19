@@ -30,13 +30,8 @@ def read_file(filename: str) -> np.ndarray:
 
 
 def calc_prop(X: np.ndarray) -> np.ndarray:
-    """Calculates the probability distribution."""
-    Xuq = np.unique(X)
-    P = np.zeros_like(Xuq, dtype=float)
-    for x in X:
-        x_idx = np.where(Xuq == x)[0]
-        P[x_idx] += 1
-    P /= len(X)
+    _, counts = np.unique(X, return_counts=True)
+    P = counts / len(X)
     return P
 
 
