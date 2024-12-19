@@ -1,4 +1,7 @@
+import argparse
+
 import numpy as np
+from scipy.io import savemat
 
 from helpers import *
 from utils import *
@@ -28,23 +31,31 @@ def gamma_distribution(samples, shape, scale):
     return np.random.gamma(shape, scale, samples)
 
 
-def save_file(data, filename="generated_data.txt"):
-    with open(filename, "w") as file:
-        file.write(f"{len(data)}\n")
-        for value in data:
-            file.write(f"{value}\n")
-    print(f"Data saved to {filename}")
+def save_file(data, filename="generated_data.mat"):
+    """
+    Saves a 1D array to a MATLAB .mat file.
+    The data will be stored in a variable named 'data'.
+    """
+    try:
+        savemat(filename, {"X": np.array(data)})
+        print(f"Data saved to {filename}")
+    except Exception as e:
+        print(f"Error saving the file: {e}")
 
 
-def save_file_joint(X, Y, filename="generated_data.txt"):
-    with open(filename, "w") as file:
-        file.write(f"{len(X)}\n")
-        for x, y in zip(X, Y):
-            file.write(f"{x} {y}\n")
-    print(f"Data saved to {filename}")
+def save_file_joint(X, Y, filename="generated_data.mat"):
+    """
+    Saves two 1D arrays (X and Y) to a MATLAB .mat file.
+    The data will be stored in variable named 'XY'.
+    """
+    try:
+        savemat(filename, {"XY": np.array([X, Y])})
+        print(f"Data saved to {filename}")
+    except Exception as e:
+        print(f"Error saving the file: {e}")
 
 
-def generate_joint_rv(samples):
+def generate_joint_rv(samples, filename="generated_data.txt"):
     print("1. X ~ Uniform Distribution (U(a, b))")
     print("2. X ~ Normal Distribution (N(mean, std_dev))")
     print("3. X ~ Binomial Distribution (Bin(n, p))")
@@ -53,6 +64,10 @@ def generate_joint_rv(samples):
     print("6. X ~ Gamma Distribution (Gamma(shape, scale))")
 
     X_choice = input("Enter your choice (1-6): ").strip()
+
+    if (X_choice > "6") or (X_choice < "1"):
+        print("Invalid choice.")
+        exit(1)
 
     match X_choice:
         case "1":
@@ -93,6 +108,10 @@ def generate_joint_rv(samples):
     print("5. Y ~ Exponential Distribution (Exp(scale))")
     print("6. Y ~ Gamma Distribution (Gamma(shape, scale))")
     print("7. Custom Y = f(X)")
+
+    if (X_choice > "7") or (X_choice < "1"):
+        print("Invalid choice.")
+        exit(1)
 
     Y_choice = input("Enter your choice (1-7): ").strip()
 
@@ -136,10 +155,27 @@ def generate_joint_rv(samples):
 
     print("Generated X:", X)
     print("Generated Y:", Y)
-    save_file_joint(X, Y)
+    save_file_joint(X, Y, filename)
+
+
+def handle_args():
+    parser = argparse.ArgumentParser(
+        description="Generate a test case for random variables."
+    )
+    parser.add_argument(
+        "filename",
+        type=str,
+        nargs="?",
+        default="generated_data.txt",
+        help="Name of the input file (default: generated_data.txt).",
+    )
+    return parser.parse_args()
 
 
 def generate_test_case():
+    args = handle_args()
+    filename = args.filename
+
     print("\n=== Test Case Generator ===")
     print("1. Uniform Distribution (U(a, b))")
     print("2. Normal Distribution (N(mean, std_dev))")
@@ -150,6 +186,11 @@ def generate_test_case():
     print("7. Joint Random Variable with Operations")
 
     choice = input("Enter your choice (1-7): ").strip()
+
+    if (choice > "7") or (choice < "1"):
+        print("Invalid choice.")
+        exit(1)
+
     samples = get_positive_integer("Enter the number of samples to generate: ")
 
     match choice:
@@ -182,7 +223,7 @@ def generate_test_case():
             data = gamma_distribution(samples, shape, scale)
 
         case "7":
-            generate_joint_rv(samples)
+            generate_joint_rv(samples, filename)
             return
 
         case _:
@@ -191,7 +232,7 @@ def generate_test_case():
 
     print("Generated Data:")
     print(data)
-    save_file(data)
+    save_file(data, filename)
 
 
 if __name__ == "__main__":
