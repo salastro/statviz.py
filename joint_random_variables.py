@@ -44,63 +44,63 @@ def calc_joint_prob(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
     Xuq, X_inv = np.unique(X, return_inverse=True)
     Yuq, Y_inv = np.unique(Y, return_inverse=True)
 
-    joint_counts = np.zeros((len(Xuq), len(Yuq)), dtype=np.float64)
-    np.add.at(joint_counts, (X_inv, Y_inv), 1)
+    Nxy = np.zeros((len(Xuq), len(Yuq)), dtype=np.float64)
+    np.add.at(Nxy, (X_inv, Y_inv), 1)
 
-    joint_prob = joint_counts / len(X)
-    return joint_prob
+    Pxy = Nxy / len(X)
+    return Pxy
 
 
-def calc_marg(joint_prob: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def calc_marg(Pxy: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute marginal distributions in float64 precision.
     """
-    joint_prob = joint_prob.astype(np.float64)
-    Px = np.sum(joint_prob, axis=1, dtype=np.float64)
-    Py = np.sum(joint_prob, axis=0, dtype=np.float64)
+    Pxy = Pxy.astype(np.float64)
+    Px = np.sum(Pxy, axis=1, dtype=np.float64)
+    Py = np.sum(Pxy, axis=0, dtype=np.float64)
     return Px, Py
 
 
-def calc_cov(X: np.ndarray, Y: np.ndarray, joint_prob: np.ndarray) -> float:
+def calc_cov(X: np.ndarray, Y: np.ndarray, Pxy: np.ndarray) -> float:
     """
     Calculate covariance using float64 precision.
     """
     X = X.astype(np.float64)
     Y = Y.astype(np.float64)
-    joint_prob = joint_prob.astype(np.float64)
+    Pxy = Pxy.astype(np.float64)
 
     Xuq = np.unique(X)
     Yuq = np.unique(Y)
 
-    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1), dtype=np.float64)
-    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0), dtype=np.float64)
+    Ex = np.sum(Xuq * np.sum(Pxy, axis=1), dtype=np.float64)
+    Ey = np.sum(Yuq * np.sum(Pxy, axis=0), dtype=np.float64)
 
-    Exy = np.sum(np.outer(Xuq, Yuq) * joint_prob, dtype=np.float64)
+    Exy = np.sum(np.outer(Xuq, Yuq) * Pxy, dtype=np.float64)
     covariance = Exy - (Ex * Ey)
     return covariance
 
 
-def calc_cor(X: np.ndarray, Y: np.ndarray, joint_prob: np.ndarray) -> float:
+def calc_cor(X: np.ndarray, Y: np.ndarray, Pxy: np.ndarray) -> float:
     """
     Calculate correlation coefficient using float64 precision.
     """
     X = X.astype(np.float64)
     Y = Y.astype(np.float64)
-    joint_prob = joint_prob.astype(np.float64)
+    Pxy = Pxy.astype(np.float64)
 
     Xuq = np.unique(X)
     Yuq = np.unique(Y)
 
-    Ex = np.sum(Xuq * np.sum(joint_prob, axis=1), dtype=np.float64)
-    Ey = np.sum(Yuq * np.sum(joint_prob, axis=0), dtype=np.float64)
+    Ex = np.sum(Xuq * np.sum(Pxy, axis=1), dtype=np.float64)
+    Ey = np.sum(Yuq * np.sum(Pxy, axis=0), dtype=np.float64)
 
-    Ex2 = np.sum((Xuq**2) * np.sum(joint_prob, axis=1), dtype=np.float64)
-    Ey2 = np.sum((Yuq**2) * np.sum(joint_prob, axis=0), dtype=np.float64)
+    Ex2 = np.sum((Xuq**2) * np.sum(Pxy, axis=1), dtype=np.float64)
+    Ey2 = np.sum((Yuq**2) * np.sum(Pxy, axis=0), dtype=np.float64)
 
     Var_X = Ex2 - Ex**2
     Var_Y = Ey2 - Ey**2
 
-    covariance = calc_cov(X, Y, joint_prob)
+    covariance = calc_cov(X, Y, Pxy)
     correlation = covariance / np.sqrt(Var_X * Var_Y)
     return correlation
 
@@ -158,48 +158,51 @@ def plot_marg_prob(
     plt.show(block=False)
 
 
-def plot_joint_prob(X: np.ndarray, Y: np.ndarray, joint_prob: np.ndarray) -> None:
+def plot_joint_prob(X: np.ndarray, Y: np.ndarray, Pxy: np.ndarray) -> None:
     """
     Plot joint probability distribution using float64 arrays.
     Uses thinner bars for better visualization.
     """
     X = X.astype(np.float64)
     Y = Y.astype(np.float64)
-    joint_prob = joint_prob.astype(np.float64)
-    
+    Pxy = Pxy.astype(np.float64)
+
     Xuq = np.unique(X)
     Yuq = np.unique(Y)
-    
+
     bin_width_X = calc_bin_width(Xuq)
     bin_width_Y = calc_bin_width(Yuq)
-    
-    bin_edges_X = np.arange(Xuq[0] - bin_width_X/2, Xuq[-1] + bin_width_X, bin_width_X, dtype=np.float64)
-    bin_edges_Y = np.arange(Yuq[0] - bin_width_Y/2, Yuq[-1] + bin_width_Y, bin_width_Y, dtype=np.float64)
-    
-    H, xedges, yedges = np.histogram2d(X, Y, bins=(bin_edges_X, bin_edges_Y), density=True)
-    
+
+    bin_edges_X = np.arange(
+        Xuq[0] - bin_width_X / 2, Xuq[-1] + bin_width_X, bin_width_X, dtype=np.float64
+    )
+    bin_edges_Y = np.arange(
+        Yuq[0] - bin_width_Y / 2, Yuq[-1] + bin_width_Y, bin_width_Y, dtype=np.float64
+    )
+
+    H, xedges, yedges = np.histogram2d(
+        X, Y, bins=(bin_edges_X, bin_edges_Y), density=True
+    )
+
     fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection='3d')
-    
-    xpos, ypos = np.meshgrid(xedges[:-1], yedges[:-1], indexing='ij')
+    ax = fig.add_subplot(111, projection="3d")
+
+    xpos, ypos = np.meshgrid(xedges[:-1], yedges[:-1], indexing="ij")
     xpos = xpos.ravel()
     ypos = ypos.ravel()
     zpos = np.zeros_like(xpos, dtype=np.float64)
-    
+
     # Reduce the width of the bars by setting dx and dy to smaller values
-    dx = np.ones_like(zpos, dtype=np.float64) * 0.5  # Changed from 1.0 to 0.5
-    dy = np.ones_like(zpos, dtype=np.float64) * 0.5  # Changed from 1.0 to 0.5
+    dx = np.ones_like(zpos, dtype=np.float64)  # Changed from 1.0 to 0.5
+    dy = np.ones_like(zpos, dtype=np.float64)  # Changed from 1.0 to 0.5
     dz = H.ravel()
-    
+
     ax.bar3d(xpos, ypos, zpos, dx, dy, dz)
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Probability')
-    ax.set_title('Joint Probability Distribution P(X, Y)')
-    
-    # Adjust the view angle for better visibility of thinner bars
-    ax.view_init(elev=25, azim=45)
-    
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Probability")
+    ax.set_title("Joint Probability Distribution P(X, Y)")
+
     plt.tight_layout()
     plt.show(block=False)
 
@@ -223,16 +226,16 @@ def main():
         return
 
     # Compute distributions
-    joint_prob = calc_joint_prob(X, Y)
-    Px, Py = calc_marg(joint_prob)
+    Pxy = calc_joint_prob(X, Y)
+    Px, Py = calc_marg(Pxy)
 
     # Plot 3D Joint and Marginal Distributions
     plot_marg_prob(X, Y, Px, Py)
-    plot_joint_prob(X, Y, joint_prob)
+    plot_joint_prob(X, Y, Pxy)
 
     # Calculate covariance and correlation
-    cov = calc_cov(X, Y, joint_prob)
-    cor = calc_cor(X, Y, joint_prob)
+    cov = calc_cov(X, Y, Pxy)
+    cor = calc_cor(X, Y, Pxy)
     mean_X, var_X, third_moment_X = calc_stats(np.unique(X), Px)
     mean_Y, var_Y, third_moment_Y = calc_stats(np.unique(Y), Py)
 
