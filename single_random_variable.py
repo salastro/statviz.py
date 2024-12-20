@@ -8,7 +8,7 @@ from helpers import *
 from utils import *
 
 
-def read_file(filename: str) -> np.ndarray:
+def read_file_single(filename: str) -> np.ndarray:
     """
     Reads a MATLAB .mat file and returns sample space X and probabilities P.
     File format:
@@ -18,7 +18,9 @@ def read_file(filename: str) -> np.ndarray:
     """
     try:
         data = loadmat(filename)
-        X = np.array(data.get("X", []), dtype=np.float64)  # Get 'X', default to empty array if not found
+        X = np.array(
+            data.get("X", []), dtype=np.float128
+        )  # Get 'X', default to empty array if not found
 
         if X.size == 0:
             raise ValueError("The .mat file must contain 'X' variable.")
@@ -42,7 +44,9 @@ def calc_prob(X: np.ndarray) -> np.ndarray:
         return np.array([])  # Return an empty array for empty input
 
     _, counts = np.unique(X, return_counts=True)
-    P = np.array(counts / counts.sum(), dtype=np.float64)  # Explicit normalization step
+    P = np.array(
+        counts / counts.sum(), dtype=np.float128
+    )  # Explicit normalization step
     return P
 
 
@@ -140,7 +144,7 @@ def main():
     # Input file
     args = handle_args()
     filename = args.filename
-    X = read_file(filename)
+    X = read_file_single(filename)
     P = calc_prob(X)
 
     # Step 1: Plot Probability Distribution and CDF
