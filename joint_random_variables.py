@@ -161,42 +161,37 @@ def plot_marg_prob(
 def plot_joint_prob(X: np.ndarray, Y: np.ndarray, Pxy: np.ndarray) -> None:
     """
     Plot joint probability distribution using float64 arrays.
-    Uses thinner bars for better visualization.
+    Bars are sized according to the bin widths for better visualization.
     """
-    X = X.astype(np.float64)
-    Y = Y.astype(np.float64)
-    Pxy = Pxy.astype(np.float64)
+    _, bins_X = np.histogram(X, bins="scott", density=True)
+    _, bins_Y = np.histogram(Y, bins="scott", density=True)
 
-    Xuq = np.unique(X)
-    Yuq = np.unique(Y)
-
-    bin_width_X = calc_bin_width(Xuq)
-    bin_width_Y = calc_bin_width(Yuq)
-
-    bin_edges_X = np.arange(
-        Xuq[0] - bin_width_X / 2, Xuq[-1] + bin_width_X, bin_width_X, dtype=np.float64
-    )
-    bin_edges_Y = np.arange(
-        Yuq[0] - bin_width_Y / 2, Yuq[-1] + bin_width_Y, bin_width_Y, dtype=np.float64
-    )
-
-    H, xedges, yedges = np.histogram2d(
-        X, Y, bins=(bin_edges_X, bin_edges_Y), density=True
-    )
-
-    fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection="3d")
+    H, xedges, yedges = np.histogram2d(X, Y, density=True, bins=(bins_X, bins_Y))
 
     xpos, ypos = np.meshgrid(xedges[:-1], yedges[:-1], indexing="ij")
+
     xpos = xpos.ravel()
     ypos = ypos.ravel()
-    zpos = np.zeros_like(xpos, dtype=np.float64)
+    zpos = np.zeros_like(xpos)
 
-    # Reduce the width of the bars by setting dx and dy to smaller values
-    dx = np.ones_like(zpos, dtype=np.float64)  # Changed from 1.0 to 0.5
-    dy = np.ones_like(zpos, dtype=np.float64)  # Changed from 1.0 to 0.5
+    dx = np.diff(xedges)[0]
+    dy = np.diff(yedges)[0]
     dz = H.ravel()
 
+    # Filter out zero probabilities
+    mask = dz > 0
+    xpos = xpos[mask]
+    ypos = ypos[mask]
+    zpos = zpos[mask]
+    dz = dz[mask]
+
+    # Normalize the probabilities to ensure they sum to 1
+    dz_sum = np.sum(dz)
+    dz /= dz_sum
+
+    # Create figure and 3D axis
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection="3d")
     ax.bar3d(xpos, ypos, zpos, dx, dy, dz)
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
