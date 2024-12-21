@@ -1,7 +1,8 @@
 import sys
 from io import StringIO
 
-from PyQt6.QtWidgets import QApplication, QFileDialog, QMainWindow
+from PyQt6.QtWidgets import (QApplication, QFileDialog, QLabel, QMainWindow,
+                             QMessageBox, QPushButton, QVBoxLayout, QWidget)
 
 from analysis import (functions_of_random_variables, joint_random_variables,
                       single_random_variable)
@@ -112,6 +113,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("Invalid analysis mode selected")
 
     def save_results(self):
+        default_filename = "output.txt"
+        if not self.ResultsText.toPlainText().strip():
+            QMessageBox.warning(
+                self,
+                "No Content",
+                "There is no content to save. Please generate some output first.",
+            )
+            return
+
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Save Output", default_filename, "Text Files (*.txt);;All Files (*)"
+        )
+
+        if file_name:
+            try:
+                with open(file_name, "w", encoding="utf-8") as file:
+                    # Write the content to the file
+                    file.write(self.ResultsText.toPlainText())
+
+                # Show success message
+                QMessageBox.information(
+                    self, "Success", f"Output has been saved to:\n{file_name}"
+                )
+
+            except Exception as e:
+                # Show error message if something goes wrong
+                QMessageBox.critical(
+                    self, "Error", f"An error occurred while saving the file:\n{str(e)}"
+                )
         # Logic for saving results
         print("Save results button clicked")
 
