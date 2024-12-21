@@ -8,8 +8,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from sympy import symbols, sympify
 from sympy.utilities.lambdify import lambdify
 
-from .helpers import *
-from .utils import *
+from statviz.analysis.helpers import *
+from statviz.analysis.utils import *
 
 
 def matheval(expr: str, variables: list) -> Callable:

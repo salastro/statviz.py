@@ -7,8 +7,8 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.io import loadmat
 
-from .helpers import *
-from .utils import *
+from statviz.analysis.helpers import *
+from statviz.analysis.utils import *
 
 
 def plot_marg_prob(

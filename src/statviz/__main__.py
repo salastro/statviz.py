@@ -4,9 +4,9 @@ from io import StringIO
 from PyQt6.QtWidgets import (QApplication, QFileDialog, QLabel, QMainWindow,
                              QMessageBox, QPushButton, QVBoxLayout, QWidget)
 
-from analysis import (functions_of_random_variables, joint_random_variables,
-                      single_random_variable)
-from gui.gui import Ui_MainWindow
+from statviz.analysis import (functions_of_random_variables,
+                              joint_random_variables, single_random_variable)
+from statviz.gui.gui import Ui_MainWindow
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -181,8 +181,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ResultsText.setPlainText(self.results)
 
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

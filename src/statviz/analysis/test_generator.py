@@ -3,8 +3,8 @@ import argparse
 import numpy as np
 from scipy.io import savemat
 
-from helpers import *
-from utils import *
+from statviz.analysis.helpers import *
+from statviz.analysis.utils import *
 
 
 def uniform_distribution(samples, a, b):

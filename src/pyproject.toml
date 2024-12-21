@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "statviz"
+version = "0.1.1"
+description = ""
+authors = ["salastro <salah2112004@gmail.com>"]
+readme = "README.md"
+packages = [{include = "statviz"}]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+sympy = "^1.13.3"
+numpy = "2.2.0"
+matplotlib = "^3.10.0"
+scipy = "^1.14.1"
+pyqt6 = "^6.8.0"
+
+[tool.poetry.scripts]
+statviz = "statviz.__main__:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
