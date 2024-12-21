@@ -4,9 +4,26 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+from sympy import sympify, symbols
+from sympy.utilities.lambdify import lambdify
 
 from helpers import *
 from utils import *
+
+
+def matheval(expr: str, variables: list) -> Callable:
+    """
+    Safely evaluate a mathematical expression provided as a string using sympy.
+    expr: String representation of the expression.
+    valid_symbols: List of valid symbols.
+    """
+    try:
+        locals = {name: symbols(name) for name in variables}
+        expr = sympify(expr, locals=locals)
+        func = lambdify(variables, expr, modules="numpy")
+        return func
+    except Exception as e:
+        raise ValueError(f"Error evaluating expression '{expr}': {e}")
 
 
 def plot_marg_prob(
@@ -106,14 +123,6 @@ def plot_joint_prob(Z: np.ndarray, W: np.ndarray, Pxy: np.ndarray) -> None:
     plt.show(block=False)
 
 
-def calc_func_of_rv(
-    X: np.ndarray,
-    f: Callable[[float], float],
-) -> np.ndarray:
-    F = np.array([f(x) for x in X])
-    return F
-
-
 def handle_args():
     parser = argparse.ArgumentParser(
         description="Analyzes functions of random variables and computes statistics from a file."
@@ -134,16 +143,13 @@ def main():
     filename = args.filename
     X, Y = read_file_joint(filename)
 
-    # Define the functions for Z and W
-    def z_func(x: float) -> float:
-        return 2 * x - 1
-
-    def w_func(y: float) -> float:
-        return 2 - 3 * y
+    # Define functions for Z and W
+    z_func = matheval(args.Z_func, ["x", "y"])
+    w_func = matheval(args.W_func, ["x", "y"])
 
     # Calculate Z and W
-    Z = calc_func_of_rv(X, z_func)
-    W = calc_func_of_rv(Y, w_func)
+    Z = z_func(X, Y)
+    W = w_func(X, Y)
 
     # Compute joint and marginal distributions of Z and W
     Pzw = calc_joint_prob(Z, W)
@@ -175,7 +181,6 @@ def main():
     print(f"Mean = {mean_W:.4f}")
     print(f"Variance = {var_W:.4f}")
     print(f"Third Moment = {third_moment_W:.4f}")
-
 
     plt.show(block=True)
 
