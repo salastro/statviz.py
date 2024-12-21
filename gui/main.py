@@ -20,6 +20,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.OpenFileBt.clicked.connect(self.open_file)
         self.AnalyzeBt.clicked.connect(self.analyze)
         self.SaveResultsBt.clicked.connect(self.save_results)
+        self.AnalysisModeBox.currentIndexChanged.connect(self.change_analysis_mode)
+
+    def change_analysis_mode(self, index):
+        # Change the analysis mode based on the selected index
+        self.analysis_mode = self.AnalysisModeBox.itemText(index)
+        print(f"Selected analysis mode: {self.analysis_mode}")
+        if self.analysis_mode == "Single Randomo Variable":
+            pass
+        else:
+            pass
+
+    def disable_elements(self, elements):
+        """takes a list of elements and disables them all"""
+        for element in elements:
+            element.setStyleSheet(
+                """
+                QLabel:disabled { color: #666666; }
+            """
+            )
+            element.setEnabled(False)
 
     def open_file(self):
         """
@@ -51,4 +71,3 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
-
