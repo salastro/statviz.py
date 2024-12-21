@@ -12,10 +12,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setup_connections()
+        # Initialize the file path and results
         self.file_path: str = ""
         self.results: str = ""
+
+        # Initialize the analysis mode
         self.analysis_mode: str = "Single Random Variable"
         self.change_analysis_mode(0)
+
+        # Initialize the analysis parameters
+        self.t_value: float = 0.0
+        self.Z_func: str = self.ZText.text()
+        self.W_func: str = self.WText.text()
+
+        print("Main window initialized")
+        print("Analysis mode:", self.analysis_mode)
+        print(
+            "Analysis parameters: t_value =",
+            self.t_value,
+            ", Z_func =",
+            self.Z_func,
+            ", W_func =",
+            self.W_func,
+        )
 
     def setup_connections(self):
         # Connect buttons and other UI elements to their respective slots
