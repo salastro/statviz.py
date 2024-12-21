@@ -1,8 +1,10 @@
 import sys
+from io import StringIO
 
 from PyQt6.QtWidgets import QApplication, QFileDialog, QMainWindow
 
-from analysis import single_random_variable
+from analysis import (functions_of_random_variables, joint_random_variables,
+                      single_random_variable)
 from gui.gui import Ui_MainWindow
 
 
@@ -23,6 +25,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.t_value: float = self.tValueNumber.value()
         self.Z_func: str = self.ZText.text()
         self.W_func: str = self.WText.text()
+
+        # Disable editing of the results text box
+        self.ResultsText.setReadOnly(True)
 
         print("Main window initialized")
         print("Analysis mode:", self.analysis_mode)
@@ -51,10 +56,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.analysis_mode == "Single Random Variable":
             self.enable_elements(single_mode_elements)
             self.disable_elements(joint_mode_elements)
-        elif (
-            self.analysis_mode == "Joint Random Variable"
-            or self.analysis_mode == "Function of Random Variable"
-        ):
+        elif self.analysis_mode == "Joint Random Variable":
+            self.disable_elements(joint_mode_elements)
+            self.disable_elements(single_mode_elements)
+        elif self.analysis_mode == "Function of Random Variable":
             self.enable_elements(joint_mode_elements)
             self.disable_elements(single_mode_elements)
         else:
@@ -99,44 +104,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def analyze(self):
         if self.analysis_mode == "Single Random Variable":
             self.single_random_variable()
-        elif self.analysis_mode == "Joint Random Variable" :
+        elif self.analysis_mode == "Joint Random Variable":
             self.joint_random_variable()
+        elif self.analysis_mode == "Function of Random Variable":
+            self.functions_of_random_variables()
         else:
             print("Invalid analysis mode selected")
-
 
     def save_results(self):
         # Logic for saving results
         print("Save results button clicked")
 
     def single_random_variable(self):
-        # Input file
-        filename = self.file_path
-        t_max = self.t_value
-        X = single_random_variable.read_file_single(filename)
-        P = single_random_variable.calc_prob(X)
+        sys.argv = [
+            "single_random_variable.py",
+            "-f",
+            self.file_path,
+            "-t",
+            str(self.t_value),
+        ]
+        results = StringIO()
+        single_random_variable.main(results)
+        self.results = results.getvalue()
+        self.ResultsText.setPlainText(self.results)
 
-        # Step 1: Plot Probability Distribution and CDF
-        single_random_variable.plot_prob_cdf(X, P)
+    def joint_random_variable(self):
+        sys.argv = ["joint_random_variables.py", "-f", self.file_path]
+        results = StringIO()
+        joint_random_variables.main(results)
+        self.results = results.getvalue()
+        self.ResultsText.setPlainText(self.results)
 
-        # Step 2: Calculate and Display Statistical Measures
-        mean_X, var_X, third_moment = single_random_variable.calc_stats(X, P)
-        print("\n=== Results ===")
-        print("\nStatistical Measures:")
-        print(f"Mean = {mean_X:.4f}")
-        print(f"Variance = {var_X:.4f}")
-        print(f"Third Moment = {third_moment:.4f}")
-
-        # Step 3: Plot MGF and Derivatives
-        MGF, MGF_prime, MGF_double_prime = single_random_variable.calc_mgf_deriv(X, P, t_max)
-        MGF_0, MGF_prime_0, MGF_double_prime_0 = MGF[0], MGF_prime[0], MGF_double_prime[0]
-        print("\nValues at t = 0:")
-        print(f"M(0) = {MGF_0:.4f}")
-        print(f"M'(0) = {MGF_prime_0:.4f} (Mean)")
-        print(f"M''(0) = {MGF_double_prime_0:.4f}")
-        single_random_variable.plot_mgf_deriv(MGF, MGF_prime, MGF_double_prime, t_max)
-        single_random_variable.plt.show(block=True)  # Keep the program alive until plots closed
-
+    def functions_of_random_variables(self):
+        sys.argv = [
+            "function_of_random_variable.py",
+            "-f",
+            self.file_path,
+            "-Z",
+            self.Z_func,
+            "-W",
+            self.W_func,
+        ]
+        results = StringIO()
+        functions_of_random_variables.main(results)
+        self.results = results.getvalue()
+        self.ResultsText.setPlainText(self.results)
 
 
 if __name__ == "__main__":

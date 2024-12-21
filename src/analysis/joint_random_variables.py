@@ -1,12 +1,14 @@
 import argparse
+from sys import stdout
+from typing import TextIO
 
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.io import loadmat
 
-from helpers import *
-from utils import *
+from .helpers import *
+from .utils import *
 
 
 def plot_marg_prob(
@@ -115,7 +117,7 @@ def handle_args():
 
 
 # Main program
-def main():
+def main(stream: TextIO = stdout):
 
     args = handle_args()
     filename = args.filename
@@ -139,17 +141,19 @@ def main():
     mean_Y, var_Y, third_moment_Y = calc_stats(np.unique(Y), Py)
 
     # Display results
-    print("\n=== Results ===")
-    print(f"Covariance: {cov:.4f}")
-    print(f"Correlation Coefficient: {cor:.4f}")
-    print("\nStatistical Measures for X:")
-    print(f"Mean = {mean_X:.4f}")
-    print(f"Variance = {var_X:.4f}")
-    print(f"Third Moment = {third_moment_X:.4f}")
-    print("\nStatistical Measures for Y:")
-    print(f"Mean = {mean_Y:.4f}")
-    print(f"Variance = {var_Y:.4f}")
-    print(f"Third Moment = {third_moment_Y:.4f}")
+    stream.write("\n=== Results ===\n")
+    stream.write(f"Covariance: {cov:.4f}\n")
+    stream.write(f"Correlation Coefficient: {cor:.4f}\n")
+    stream.write("\nStatistical Measures for X:\n")
+    stream.write(f"Mean = {mean_X:.4f}\n")
+    stream.write(f"Variance = {var_X:.4f}\n")
+    stream.write(f"Third Moment = {third_moment_X:.4f}\n")
+    stream.write("\nStatistical Measures for Y:\n")
+    stream.write(f"Mean = {mean_Y:.4f}\n")
+    stream.write(f"Variance = {var_Y:.4f}\n")
+    stream.write(f"Third Moment = {third_moment_Y:.4f}\n")
+    stream.write("\n")
+    stream.flush()
 
     # Show plots
     plt.show(block=True)

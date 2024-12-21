@@ -1,14 +1,15 @@
 import argparse
-from typing import Callable
+from sys import stdout
+from typing import Callable, TextIO
 
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from sympy import sympify, symbols
+from sympy import symbols, sympify
 from sympy.utilities.lambdify import lambdify
 
-from helpers import *
-from utils import *
+from .helpers import *
+from .utils import *
 
 
 def matheval(expr: str, variables: list) -> Callable:
@@ -138,7 +139,7 @@ def handle_args():
     return args
 
 
-def main():
+def main(stream: TextIO = stdout):
     args = handle_args()
     filename = args.filename
     X, Y = read_file_joint(filename)
@@ -155,32 +156,34 @@ def main():
     Pzw = calc_joint_prob(Z, W)
     Pz, Pw = calc_marg_prob(Pzw)
 
-    # Plot marginal distributions of Z and W
-    plot_marg_prob(Z, W, Pz, Pw)
-
-    # Compute statistics
-    mean_Z, var_Z, third_moment_Z = calc_stats(Z, Pz)
-    mean_W, var_W, third_moment_W = calc_stats(W, Pw)
-
     # Compute covariance and correlation coefficient
     cov = calc_cov(Z, W, Pzw)
     cor = calc_cor(Z, W, Pzw)
 
-    # Plot joint probability distribution of Z and W
-    plot_joint_prob(Z, W, Pzw)
+    stream.write("\n=== Results ===\n")
+    stream.write(f"Covariance: {cov:.4f}\n")
+    stream.write(f"Correlation Coefficient: {cor:.4f}\n")
+    # Compute statistics
+    mean_Z, var_Z, third_moment_Z = calc_stats(Z, Pz)
+    mean_W, var_W, third_moment_W = calc_stats(W, Pw)
 
     # Display results
-    print("\n=== Results ===")
-    print(f"Covariance: {cov:.4f}")
-    print(f"Correlation Coefficient: {cor:.4f}")
-    print("\nStatistical Measures for Z:")
-    print(f"Mean = {mean_Z:.4f}")
-    print(f"Variance = {var_Z:.4f}")
-    print(f"Third Moment = {third_moment_Z:.4f}")
-    print("\nStatistical Measures for W:")
-    print(f"Mean = {mean_W:.4f}")
-    print(f"Variance = {var_W:.4f}")
-    print(f"Third Moment = {third_moment_W:.4f}")
+    stream.write("\nStatistical Measures for Z:\n")
+    stream.write(f"Mean = {mean_Z:.4f}\n")
+    stream.write(f"Variance = {var_Z:.4f}\n")
+    stream.write(f"Third Moment = {third_moment_Z:.4f}\n")
+    stream.write("\nStatistical Measures for W:\n")
+    stream.write(f"Mean = {mean_W:.4f}\n")
+    stream.write(f"Variance = {var_W:.4f}\n")
+    stream.write(f"Third Moment = {third_moment_W:.4f}\n")
+    stream.write("\n")
+    stream.flush()
+
+    # Plot marginal distributions of Z and W
+    plot_marg_prob(Z, W, Pz, Pw)
+
+    # Plot joint probability distribution of Z and W
+    plot_joint_prob(Z, W, Pzw)
 
     plt.show(block=True)
 

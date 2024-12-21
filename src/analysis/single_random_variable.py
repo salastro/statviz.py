@@ -1,6 +1,8 @@
 import argparse
+from sys import stdout
 from functools import partial
 from multiprocessing import Pool, cpu_count
+from typing import TextIO
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -186,7 +188,7 @@ def handle_args():
     return parser.parse_args()
 
 
-def main():
+def main(stream: TextIO = stdout):
     # Input file
     args = handle_args()
     filename = args.filename
@@ -199,19 +201,19 @@ def main():
 
     # Step 2: Calculate and Display Statistical Measures
     mean_X, var_X, third_moment = calc_stats(X, P)
-    print("\n=== Results ===")
-    print("\nStatistical Measures:")
-    print(f"Mean = {mean_X:.4f}")
-    print(f"Variance = {var_X:.4f}")
-    print(f"Third Moment = {third_moment:.4f}")
+    stream.write("\n=== Results ===\n")
+    stream.write("\nStatistical Measures:\n")
+    stream.write(f"Mean = {mean_X:.4f}\n")
+    stream.write(f"Variance = {var_X:.4f}\n")
+    stream.write(f"Third Moment = {third_moment:.4f}\n")
 
     # Step 3: Plot MGF and Derivatives
     MGF, MGF_prime, MGF_double_prime = calc_mgf_deriv(X, P, t_max)
     MGF_0, MGF_prime_0, MGF_double_prime_0 = MGF[0], MGF_prime[0], MGF_double_prime[0]
-    print("\nValues at t = 0:")
-    print(f"M(0) = {MGF_0:.4f}")
-    print(f"M'(0) = {MGF_prime_0:.4f} (Mean)")
-    print(f"M''(0) = {MGF_double_prime_0:.4f}")
+    stream.write("\nValues at t = 0:\n")
+    stream.write(f"M(0) = {MGF_0:.4f}\n")
+    stream.write(f"M'(0) = {MGF_prime_0:.4f} (Mean)\n")
+    stream.write(f"M''(0) = {MGF_double_prime_0:.4f}\n")
     plot_mgf_deriv(MGF, MGF_prime, MGF_double_prime, t_max)
     plt.show(block=True)  # Keep the program alive until plots closed
 
