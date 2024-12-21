@@ -134,9 +134,10 @@ def plot_mgf_deriv(
 
 def handle_args():
     parser = argparse.ArgumentParser(
-        description="Analyze a random variable from a file."
+        description="Analyze a single random variable and compute statistics from a file."
     )
-    parser.add_argument("filename", type=str, help="Name of the input file.")
+    parser.add_argument("-f", "--filename", type=str, help="Name of the input file.")
+    parser.add_argument("-t", "--t_max", type=float, help="Maximum value of t.")
     return parser.parse_args()
 
 

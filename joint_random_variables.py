@@ -108,9 +108,9 @@ def plot_joint_prob(X: np.ndarray, Y: np.ndarray, Pxy: np.ndarray) -> None:
 
 def handle_args():
     parser = argparse.ArgumentParser(
-        description="Analyze a random variable from a file."
+        description="Analyze joint random variables and compute statistics from a file."
     )
-    parser.add_argument("filename", type=str, help="Name of the input file.")
+    parser.add_argument("-f", "--filename", type=str, help="Name of the input file.")
     return parser.parse_args()
 
 

@@ -115,8 +115,16 @@ def calc_func_of_rv(
 
 
 def handle_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("filename", type=str, help="Name of the input file.")
+    parser = argparse.ArgumentParser(
+        description="Analyzes functions of random variables and computes statistics from a file."
+    )
+    parser.add_argument("-f", "--filename", type=str, help="Name of the input file.")
+    parser.add_argument(
+        "-Z", "--Z_func", nargs="?", type=str, default="2*x-1", help="Function for Z."
+    )
+    parser.add_argument(
+        "-W", "--W_func", nargs="?", type=str, default="2-3*y", help="Function for W."
+    )
     args = parser.parse_args()
     return args
 
