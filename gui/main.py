@@ -3,6 +3,7 @@ import sys
 from PyQt6.QtWidgets import QApplication, QFileDialog, QMainWindow
 
 from gui import Ui_MainWindow
+
 # from ..src import single_random_variable, joint_random_variable, function_of_random_variable, test_generator
 
 
@@ -14,6 +15,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.file_path: str = ""
         self.results: str = ""
         self.analysis_mode: str = "Single Random Variable"
+        self.change_analysis_mode(0)
 
     def setup_connections(self):
         # Connect buttons and other UI elements to their respective slots
@@ -24,12 +26,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def change_analysis_mode(self, index):
         # Change the analysis mode based on the selected index
+        single_mode_elements = [self.t_label, self.tValueNumber]
+        joint_mode_elements = [self.Z_label, self.ZText, self.W_label, self.WText]
         self.analysis_mode = self.AnalysisModeBox.itemText(index)
         print(f"Selected analysis mode: {self.analysis_mode}")
-        if self.analysis_mode == "Single Randomo Variable":
-            pass
+        if self.analysis_mode == "Single Random Variable":
+            self.enable_elements(single_mode_elements)
+            self.disable_elements(joint_mode_elements)
+        elif (
+            self.analysis_mode == "Joint Random Variable"
+            or self.analysis_mode == "Function of Random Variable"
+        ):
+            self.enable_elements(joint_mode_elements)
+            self.disable_elements(single_mode_elements)
         else:
-            pass
+            print("Invalid analysis mode selected")
+
+    def enable_elements(self, elements):
+        """takes a list of elements and enables them all"""
+        for element in elements:
+            element.setStyleSheet(
+                """
+                QLabel:enabled { color: #000000; }
+            """
+            )
+            element.setEnabled(True)
 
     def disable_elements(self, elements):
         """takes a list of elements and disables them all"""
