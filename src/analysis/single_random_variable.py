@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.io import loadmat
 
-from helpers import *
-from utils import *
+from .helpers import *
+from .utils import *
 
 
 def read_file_single(filename: str) -> np.ndarray:

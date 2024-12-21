@@ -2,9 +2,8 @@ import sys
 
 from PyQt6.QtWidgets import QApplication, QFileDialog, QMainWindow
 
-from gui import Ui_MainWindow
-
-# from ..src import single_random_variable, joint_random_variable, function_of_random_variable, test_generator
+from analysis import single_random_variable
+from gui.gui import Ui_MainWindow
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -21,7 +20,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.change_analysis_mode(0)
 
         # Initialize the analysis parameters
-        self.t_value: float = 0.0
+        self.t_value: float = self.tValueNumber.value()
         self.Z_func: str = self.ZText.text()
         self.W_func: str = self.WText.text()
 
@@ -98,12 +97,46 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("No file selected")
 
     def analyze(self):
-        # Logic for analyzing the file
-        print("Analyze button clicked")
+        if self.analysis_mode == "Single Random Variable":
+            self.single_random_variable()
+        elif self.analysis_mode == "Joint Random Variable" :
+            self.joint_random_variable()
+        else:
+            print("Invalid analysis mode selected")
+
 
     def save_results(self):
         # Logic for saving results
         print("Save results button clicked")
+
+    def single_random_variable(self):
+        # Input file
+        filename = self.file_path
+        t_max = self.t_value
+        X = single_random_variable.read_file_single(filename)
+        P = single_random_variable.calc_prob(X)
+
+        # Step 1: Plot Probability Distribution and CDF
+        single_random_variable.plot_prob_cdf(X, P)
+
+        # Step 2: Calculate and Display Statistical Measures
+        mean_X, var_X, third_moment = single_random_variable.calc_stats(X, P)
+        print("\n=== Results ===")
+        print("\nStatistical Measures:")
+        print(f"Mean = {mean_X:.4f}")
+        print(f"Variance = {var_X:.4f}")
+        print(f"Third Moment = {third_moment:.4f}")
+
+        # Step 3: Plot MGF and Derivatives
+        MGF, MGF_prime, MGF_double_prime = single_random_variable.calc_mgf_deriv(X, P, t_max)
+        MGF_0, MGF_prime_0, MGF_double_prime_0 = MGF[0], MGF_prime[0], MGF_double_prime[0]
+        print("\nValues at t = 0:")
+        print(f"M(0) = {MGF_0:.4f}")
+        print(f"M'(0) = {MGF_prime_0:.4f} (Mean)")
+        print(f"M''(0) = {MGF_double_prime_0:.4f}")
+        single_random_variable.plot_mgf_deriv(MGF, MGF_prime, MGF_double_prime, t_max)
+        single_random_variable.plt.show(block=True)  # Keep the program alive until plots closed
+
 
 
 if __name__ == "__main__":
