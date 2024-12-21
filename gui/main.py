@@ -99,9 +99,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     f"Output has been saved to:\n{file_name}"
                 )
                 
-                # # Log the save operation in the output box
-                # self.append_output(f"Output saved to: {file_name}")
-                
             except Exception as e:
                 # Show error message if something goes wrong
                 QMessageBox.critical(
