@@ -1,7 +1,8 @@
 import sys
 
-from PyQt6.QtWidgets import QApplication, QFileDialog, QMainWindow
-
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, 
+                            QFileDialog, QVBoxLayout, QWidget, QLabel,
+                            QMessageBox)
 from gui import Ui_MainWindow
 # from ..src import single_random_variable, joint_random_variable, function_of_random_variable, test_generator
 
@@ -14,6 +15,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.file_path: str = ""
         self.results: str = ""
         self.analysis_mode: str = "Single Random Variable"
+        elements = [self.ZText, self.WText, self.tValueNumber]
+        self.disable_elements(elements)
+        self.ResultsText.setReadOnly(True)
 
     def setup_connections(self):
         # Connect buttons and other UI elements to their respective slots
@@ -41,6 +45,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             element.setEnabled(False)
 
+    def enable_elements(self, elements):
+        for element in elements:
+            element.setEnabled(True)
+
     def open_file(self):
         """
         Open a file dialog to select samples .mat file
@@ -62,6 +70,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         print("Analyze button clicked")
 
     def save_results(self):
+        default_filename = "output.mat"
+        if not self.ResultsText.toPlainText().strip():
+            QMessageBox.warning(
+                self,
+                "No Content",
+                "There is no content to save. Please generate some output first."
+            )
+            return
+
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Output",
+            default_filename,
+            "Text Files (*.txt);;All Files (*)"
+        )
+        
+        if file_name:
+            try:
+                with open(file_name, 'w', encoding='utf-8') as file:
+                    # Write the content to the file
+                    file.write(self.ResultsText.toPlainText())
+                
+                # Show success message
+                QMessageBox.information(
+                    self,
+                    "Success",
+                    f"Output has been saved to:\n{file_name}"
+                )
+                
+                # # Log the save operation in the output box
+                # self.append_output(f"Output saved to: {file_name}")
+                
+            except Exception as e:
+                # Show error message if something goes wrong
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"An error occurred while saving the file:\n{str(e)}"
+                )
         # Logic for saving results
         print("Save results button clicked")
 
