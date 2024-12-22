@@ -1,15 +1,17 @@
 import argparse
 from sys import stdout
-from functools import partial
-from multiprocessing import Pool, cpu_count
 from typing import TextIO
 
+import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.io import loadmat
 
 from statviz.analysis.helpers import *
 from statviz.analysis.utils import *
+
+N=100
 
 
 def read_file_single(filename: str) -> np.ndarray:
@@ -23,7 +25,7 @@ def read_file_single(filename: str) -> np.ndarray:
     try:
         data = loadmat(filename)
         X = np.array(
-            data.get("X", []), dtype=np.float128
+            data.get("X", []), dtype=np.float64
         )  # Get 'X', default to empty array if not found
 
         if X.size == 0:
@@ -49,7 +51,7 @@ def calc_prob(X: np.ndarray) -> np.ndarray:
 
     _, counts = np.unique(X, return_counts=True)
     P = np.array(
-        counts / counts.sum(), dtype=np.float128
+        counts / counts.sum(), dtype=np.float64
     )  # Explicit normalization step
     return P
 
@@ -87,59 +89,15 @@ def plot_prob_cdf(X: np.ndarray, P: np.ndarray) -> None:
     plt.show(block=False)
 
 
-def _calc_mgf_chunk(
-    t_chunk: np.ndarray, Xuq: np.ndarray, P: np.ndarray
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Calculate MGF and derivatives for a chunk of t values."""
-    T, X_mesh = np.meshgrid(t_chunk, Xuq)
-    P_mesh = P[:, np.newaxis]
-
-    exp_tx = np.exp(T * X_mesh)
-
-    MGF_chunk = np.sum(exp_tx * P_mesh, axis=0)
-    MGF_prime_chunk = np.sum(X_mesh * exp_tx * P_mesh, axis=0)
-    MGF_double_prime_chunk = np.sum(X_mesh**2 * exp_tx * P_mesh, axis=0)
-
-    return MGF_chunk, MGF_prime_chunk, MGF_double_prime_chunk
-
-
 def calc_mgf_deriv(
-    X: np.ndarray, P: np.ndarray, t_max: float, n_chunks: int = None
+    X: np.ndarray, P: np.ndarray, t_max: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Calculates the Moment Generating Function (MGF) and its derivatives using parallel processing.
-
-    Args:
-        X: Input values array
-        P: Probability/weights array
-        t_max: Maximum t value for calculation
-        n_chunks: Number of chunks to split the calculation into. Defaults to number of CPU cores.
-
-    Returns:
-        Tuple of (MGF, MGF_prime, MGF_double_prime) arrays
-    """
+    """Calculates the Moment Generating Function (MGF) and its derivatives."""
     Xuq = np.unique(X)
-    n = 100
-    t_values = np.linspace(0, t_max, n)
-
-    # Determine number of chunks based on CPU cores if not specified
-    if n_chunks is None:
-        n_chunks = cpu_count()
-
-    # Split t_values into chunks
-    t_chunks = np.array_split(t_values, n_chunks)
-
-    # Create partial function with fixed arguments
-    worker_func = partial(_calc_mgf_chunk, Xuq=Xuq, P=P)
-
-    # Process chunks in parallel
-    with Pool(processes=n_chunks) as pool:
-        results = pool.map(worker_func, t_chunks)
-
-    # Combine results from all chunks
-    MGF = np.concatenate([r[0] for r in results])
-    MGF_prime = np.concatenate([r[1] for r in results])
-    MGF_double_prime = np.concatenate([r[2] for r in results])
-
+    t_values = np.linspace(0, t_max, N)
+    MGF = np.array([np.sum(np.exp(t * Xuq) * P) for t in t_values])
+    MGF_prime = np.array([np.sum(Xuq * np.exp(t * Xuq) * P) for t in t_values])
+    MGF_double_prime = np.array([np.sum(Xuq**2 * np.exp(t * Xuq) * P) for t in t_values])
     return MGF, MGF_prime, MGF_double_prime
 
 
@@ -150,8 +108,7 @@ def plot_mgf_deriv(
     t_max: float,
 ) -> None:
     """Plots the Moment Generating Function (MGF) and its derivatives."""
-    n = 100
-    t_values = np.linspace(0, t_max, n)
+    t_values = np.linspace(0, t_max, N)
     plt.figure(figsize=(10, 8))
 
     plt.subplot(3, 1, 1)

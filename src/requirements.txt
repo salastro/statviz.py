@@ -2,3 +2,4 @@ matplotlib
 sympy
 numpy
 pyqt6
+scipy

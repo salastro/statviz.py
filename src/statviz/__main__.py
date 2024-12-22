@@ -103,6 +103,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("No file selected")
 
     def analyze(self):
+        # Update input values
+        self.t_value: float = self.tValueNumber.value()
+        self.Z_func: str = self.ZText.text()
+        self.W_func: str = self.WText.text()
+
+        # Run analysis mode function
         if self.analysis_mode == "Single Random Variable":
             self.single_random_variable()
         elif self.analysis_mode == "Joint Random Variable":
