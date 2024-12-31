@@ -2,6 +2,25 @@
 
 This project, **StatViz.py**, provides a graphical user interface (GUI) for analyzing random variables and their statistics. It allows users to input random variables (single or multiple) and their functions, and then generate plots and statistical values to better understand their distributions. This project is developed for the Probability and Stochastic Processes (CIE 327) course.
 
+## Installation
+StatViz uses `poetry` for the ease of packaging and updates
+1. **Install poetry**
+For linux machines
+```pipx install poetry```
+or
+```pip install poetry```
+For windows 
+
+2. **Clone the repo and Build**
+```
+git clone https://github.com/salastro/statviz.py.git
+cd statviz.py/src
+poetry install 
+```
+
+3. **Run**
+```poetry run statviz```
+
 ## Features
 
 StatViz.py is designed to handle the following:
