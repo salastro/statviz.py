@@ -7,12 +7,12 @@ readme = "README.md"
 packages = [{include = "statviz"}]
 
 [tool.poetry.dependencies]
-python = "^3.13"
-sympy = "^1.13.3"
+python = "^3.10"
+sympy = "^1.13.2"
 numpy = "2.2.0"
-matplotlib = "^3.10.0"
-scipy = "^1.14.1"
-pyqt5="*"
+matplotlib = "^3.9.0"
+scipy = "^1.14.0"
+pyqt6="*"
 
 [tool.poetry.scripts]
 statviz = "statviz.__main__:main"
