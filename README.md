@@ -2,6 +2,10 @@
 
 This project, **StatViz.py**, provides a graphical user interface (GUI) for analyzing random variables and their statistics. It allows users to input random variables (single or multiple) and their functions, and then generate plots and statistical values to better understand their distributions. This project is developed for the Probability and Stochastic Processes (CIE 327) course.
 
+
+![statviz-1](https://github.com/user-attachments/assets/615ef2e5-464d-4998-b179-6f18f17d6b0d)
+![statviz-2](https://github.com/user-attachments/assets/b8f71757-43a7-4fc2-b420-32384b131810)
+
 ## Installation
 StatViz uses `poetry` for the ease of packaging and updates
 1. **Install poetry**
